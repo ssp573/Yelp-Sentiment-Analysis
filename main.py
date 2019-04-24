@@ -10,6 +10,8 @@ from nltk.corpus import stopwords
 import torchtext.data as data
 import pandas as pd
 from collections import Counter
+import numpy as np
+
 
 
 train_tokenized=pd.read_pickle('data/train_restaurants_tokenized.pkl')
@@ -29,7 +31,9 @@ val_data_tokens,val_data_labels=zip(*val_tuples)
 test_tuples= [tuple(x) for x in test_tokenized[['text','sentiment']].values]
 test_data_tokens,test_data_labels=zip(*test_tuples)
 
-
+tokens=list(train_tokenized['text'])
+all_tokens=[token for token_list in tokens for token in token_list]
+dist_tokens=list(set(all_tokens))
 
 max_vocab_size=10000
 PAD_IDX=0
@@ -255,4 +259,5 @@ for epoch in range(num_epochs):
 #plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
 #plt.show()
+
 
