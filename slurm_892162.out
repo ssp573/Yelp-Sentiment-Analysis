@@ -1,2 +1,0 @@
-cp: cannot stat ‘/home/ssp573/CloudML/Yelp_Sentiment_Analysis/’: No such file or directory
-/opt/slurm/data/slurmd/job892162/slurm_script: line 26: /home/ssp573/CloudML/Yelp_Sentiment_Analysis/Results/output.txt: No such file or directory
