@@ -1,0 +1,30 @@
+/opt/slurm/data/slurmd/job892304/slurm_script: line 20: /home/ssp573: Is a directory
+cp: cannot create regular file ‘/scratch/ssp573/CloudML/Proj_3/Yelp-Sentiment-Analysis/.git/objects/27/1243c18430b26b07112b01bcdece0c6c6da6bf’: Permission denied
+cp: cannot create regular file ‘/scratch/ssp573/CloudML/Proj_3/Yelp-Sentiment-Analysis/.git/objects/1e/f4d87f057d4a9532be73b10c26b919d5a607b6’: Permission denied
+cp: cannot create regular file ‘/scratch/ssp573/CloudML/Proj_3/Yelp-Sentiment-Analysis/.git/objects/1e/413179e2d743c54a2cca2e22c4671d5aa1bfb7’: Permission denied
+cp: cannot create regular file ‘/scratch/ssp573/CloudML/Proj_3/Yelp-Sentiment-Analysis/.git/objects/76/1851d178b70a94ae013df1c03c2db7c9fc251b’: Permission denied
+cp: cannot create regular file ‘/scratch/ssp573/CloudML/Proj_3/Yelp-Sentiment-Analysis/.git/objects/ef/3c2817cc96ad1c1c8b938c6a7add2b56271f15’: Permission denied
+cp: cannot create regular file ‘/scratch/ssp573/CloudML/Proj_3/Yelp-Sentiment-Analysis/.git/objects/8b/137891791fe96927ad78e64b0aad7bded08bdc’: Permission denied
+cp: cannot create regular file ‘/scratch/ssp573/CloudML/Proj_3/Yelp-Sentiment-Analysis/.git/objects/1d/97407a4400c3bb90366ddbbfcf7a6ee341d83e’: Permission denied
+cp: cannot create regular file ‘/scratch/ssp573/CloudML/Proj_3/Yelp-Sentiment-Analysis/.git/objects/4b/684283056f554e44e8efb4db7a08d99daffdde’: Permission denied
+cp: cannot create regular file ‘/scratch/ssp573/CloudML/Proj_3/Yelp-Sentiment-Analysis/.git/objects/bc/34952bad15d7c460c07955a8cd84f9d8c94173’: Permission denied
+cp: cannot create regular file ‘/scratch/ssp573/CloudML/Proj_3/Yelp-Sentiment-Analysis/.git/objects/8d/7519bb8acbcabbec9019bd75cc152725adb453’: Permission denied
+cp: cannot create regular file ‘/scratch/ssp573/CloudML/Proj_3/Yelp-Sentiment-Analysis/.git/objects/25/8b6c525dc5a118f2c84470c5427b4f134ce7d8’: Permission denied
+cp: cannot create regular file ‘/scratch/ssp573/CloudML/Proj_3/Yelp-Sentiment-Analysis/.git/objects/4a/15dbdfadbff21467da71ddff9503529e9dd694’: Permission denied
+/scratch/ssp573/CloudML/Proj_3
+cuda
+10002
+Traceback (most recent call last):
+  File "./Yelp-Sentiment-Analysis/main.py", line 243, in <module>
+    outputs = model(data_batch, length_batch)
+  File "/home/ssp573/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 477, in __call__
+    result = self.forward(*input, **kwargs)
+  File "./Yelp-Sentiment-Analysis/main.py", line 185, in forward
+    out = self.embed(data)
+  File "/home/ssp573/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 477, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/ssp573/.local/lib/python3.6/site-packages/torch/nn/modules/sparse.py", line 110, in forward
+    self.norm_type, self.scale_grad_by_freq, self.sparse)
+  File "/home/ssp573/.local/lib/python3.6/site-packages/torch/nn/functional.py", line 1110, in embedding
+    return torch.embedding(weight, input, padding_idx, scale_grad_by_freq, sparse)
+RuntimeError: Expected object of type torch.LongTensor but found type torch.cuda.LongTensor for argument #3 'index'

@@ -1,22 +1,31 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import spacy
-spacy_en=spacy.load('en')
-import spacy
+#import spacy
+#spacy_en=spacy.load('en')
+#import spacy
 import string
-from nltk.stem.porter import PorterStemmer
-from nltk.corpus import stopwords
+#from nltk.stem.porter import PorterStemmer
+#from nltk.corpus import stopwords
 import torchtext.data as data
 import pandas as pd
 from collections import Counter
 import numpy as np
+import argparse
 
+parser = argparse.ArgumentParser(description='Process some integers.')
 
+parser.add_argument('--data_dir', metavar='N', type=str,
+                    help='Data directory')
 
-train_tokenized=pd.read_pickle('data/train_restaurants_tokenized.pkl')
-val_tokenized=pd.read_pickle('data/val_restaurants_tokenized.pkl')
-test_tokenized= pd.read_pickle('data/test_restaurants_tokenized.pkl')
+args = parser.parse_args()
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(device)
+
+train_tokenized=pd.read_pickle(args.data_dir+'/train_restaurants_tokenized.pkl')
+val_tokenized=pd.read_pickle(args.data_dir+'/val_restaurants_tokenized.pkl')
+test_tokenized= pd.read_pickle(args.data_dir+'/test_restaurants_tokenized.pkl')
 
 train_tokenized['sentiment']=np.where(train_tokenized['sentiment']=='pos',1,0)
 val_tokenized['sentiment']=np.where(val_tokenized['sentiment']=='pos',1,0)
@@ -159,7 +168,7 @@ class BagOfWords(nn.Module):
         super(BagOfWords, self).__init__()
         # pay attention to padding_idx 
         #embed dimension should be atleast 100
-        self.embed = nn.Embedding(vocab_size, emb_dim, padding_idx=0)
+        self.embed = nn.Embedding(vocab_size, emb_dim, padding_idx=0).to(device)
         self.linear = nn.Linear(emb_dim,hidden_size)
         self.linear2=nn.Linear(hidden_size,2)
     
@@ -184,7 +193,7 @@ class BagOfWords(nn.Module):
 
 emb_dim = 100
 print(len(id2token))
-model = BagOfWords(len(id2token), emb_dim)
+model = BagOfWords(len(id2token), emb_dim).to(device)
 
 
 emb_dim = 100
@@ -210,7 +219,7 @@ def test_model(loader, model):
     total = 0
     model.eval()
     for data, lengths, labels in loader:
-        data_batch, length_batch, label_batch = data, lengths, labels
+        data_batch, length_batch, label_batch = data.to(device), lengths.to(device), labels.to(device)
         #print(data_batch,label_batch,length_batch)
         outputs = F.softmax(model(data_batch, length_batch), dim=1)
         predicted = outputs.max(1, keepdim=True)[1]
@@ -227,7 +236,7 @@ for epoch in range(num_epochs):
         optimizer=torch.optim.Adam(model.parameters(), lr=learning_rate*0.5)
     for i, (data, lengths, labels) in enumerate(train_loader):
         model.train()
-        data_batch, length_batch, label_batch = data, lengths, labels
+        data_batch, length_batch, label_batch = data.to(device), lengths.to(device), labels.to(device)
         optimizer.zero_grad()
         #for k in label_batch:
         #    print(k.type())
