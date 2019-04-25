@@ -1,3 +1,0 @@
-cp: cannot stat ‘/home/ssp573/CloudML/Yelp_Sentiment_Analysis/’: No such file or directory
-/scratch/ssp573/CloudML/Proj_3
-python3: can't open file './CloudML/Yelp_Sentiment_Analysis/main.py': [Errno 2] No such file or directory
