@@ -14,10 +14,12 @@ parser = argparse.ArgumentParser(description='Process some integers.')
 
 parser.add_argument('--data_dir', metavar='N', type=str,
                     help='Data directory',default='data')
-parser.add_argument('--hidden_size', metavar='N', type=int,
-                    help='Hidden layer size',default=512)
+parser.add_argument('--hidden_size_cnn', metavar='N', type=int,
+                    help='Hidden layer size for CNN',default=512)
+parser.add_argument('--hidden_size_linear',metavar='N',type=int,
+                    help='Hidden layer size for linear layer', default=1024)
 parser.add_argument('--emb_dim', metavar='N', type=int,
-                    help='Dimensions for word embedding',default=512)
+                    help='Dimensions for word embedding',default=300)
 parser.add_argument('--max_vocab_size', metavar='N', type=int,
                     help='Maximum vocabulary size',default=10000)
 parser.add_argument('--batch_size', metavar='N', type=int,
@@ -30,9 +32,9 @@ args = parser.parse_args()
 
 
 
-train_tokenized=pd.read_pickle(args.data_dir+'/train_restaurants_tokenized.pkl')
-val_tokenized=pd.read_pickle(args.data_dir+'/val_restaurants_tokenized.pkl')
-test_tokenized= pd.read_pickle(args.data_dir+'/test_restaurants_tokenized.pkl')
+train_tokenized=pd.read_pickle(args.data_dir+'/train_restaurants_tokenized.pkl')#[:2000]
+val_tokenized=pd.read_pickle(args.data_dir+'/val_restaurants_tokenized.pkl')#[:2000]
+test_tokenized= pd.read_pickle(args.data_dir+'/test_restaurants_tokenized.pkl')#[:2000]
 
 train_tokenized['sentiment']=np.where(train_tokenized['sentiment']=='pos',1,0)
 val_tokenized['sentiment']=np.where(val_tokenized['sentiment']=='pos',1,0)
@@ -81,6 +83,8 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
 #print(len(id2token))
 if args.model=='BOW':
     model = BagOfWords(len(id2token),args.hidden_size, args.emb_dim).to(device)
+elif args.model=='CNN':
+    model = CNN(len(id2token),args.hidden_size_linear,args.hidden_size_cnn, args.emb_dim).to(device)
 
 learning_rate = 0.001
 num_epochs = 10 # number epoch to train
@@ -130,7 +134,7 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
         # validate every 100 iterations
-        if i > 0 and i % 100 == 0:
+        if i > 0 and i%1==0:#and i % 100 == 0:
             # validate
             val_acc = test_model(val_loader, model)
             train_acc= test_model(train_loader, model)
@@ -155,5 +159,4 @@ for epoch in range(num_epochs):
 #plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
 #plt.show()
-
 
