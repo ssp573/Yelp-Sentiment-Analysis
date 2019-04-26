@@ -38,3 +38,36 @@ class BagOfWords(nn.Module):
         out = F.relu(self.linear(out.float()))
         out=self.linear2(out)
         return out
+
+class CNN(nn.Module):
+    """
+    BagOfWords classification model
+    """
+    def __init__(self, vocab_size, hidden_size,hidden_cnn, emb_dim):
+        """
+        @param vocab_size: size of the vocabulary. 
+        @param emb_dim: size of the word embedding
+        """
+        super(CNN, self).__init__()
+        # pay attention to padding_idx 
+        #embed dimension should be atleast 100
+        self.embed = nn.Embedding(vocab_size, emb_dim, padding_idx=0).to(device)
+        self.conv1 = nn.Conv1d(emb_dim,hidden_cnn,kernel_size=3,padding=1)
+        #self.conv2 = nn.Conv1d(hidden_cnn,hidden_cnn,kernel_size=3,padding=1)
+        self.linear = nn.Linear(hidden_cnn,hidden_size)
+        self.linear2=nn.Linear(hidden_size,2)
+    
+    def forward(self, data, length):
+        #data.type()
+        #print(data.type())
+        batch_size, seq_len = data.size()
+        embed = self.embed(data)
+        hidden = self.conv1(embed.transpose(1,2)).transpose(1,2)
+        hidden = F.relu(hidden.contiguous().view(-1, hidden.size(-1))).view(batch_size, seq_len, hidden.size(-1))
+        #hidden = self.conv2(hidden.transpose(1,2)).transpose(1,2)
+        #hidden = F.relu(hidden.contiguous().view(-1, hidden.size(-1))).view(batch_size, seq_len, hidden.size(-1))
+        # return logits
+        hidden=torch.max(hidden,dim=1)[0]
+        hidden = F.relu(self.linear(hidden))
+        out=self.linear2(hidden)
+        return out
