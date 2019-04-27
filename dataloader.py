@@ -80,4 +80,32 @@ def yelp_collate_func(batch):
     #print(label_list[:10])
     return [torch.from_numpy(np.array(data_list)).long(), torch.LongTensor(length_list), torch.LongTensor(label_list)]
 
+def yelp_collate_func_rnn(batch):
+    """
+    Customized function for DataLoader that dynamically pads the batch so that all 
+    data have the same length
+    """
+    data_list = []
+    label_list = []
+    length_list = []
+    #print("collate batch: ", batch[0][0])
+    #batch[0][0] = batch[0][0][:MAX_SENTENCE_LENGTH]
+    for datum in batch:
+        label_list.append(datum[2])
+        length_list.append(datum[1])
+    # padding
+    for datum in batch:
+        padded_vec = np.pad(np.array(datum[0]),
+                                pad_width=((0,MAX_SENTENCE_LENGTH-datum[1])),
+                                mode="constant", constant_values=0)
+        data_list.append(padded_vec)
+    #print(label_list[:10])
+    _, idx_sort = torch.sort(torch.tensor(length_list), dim=0, descending=True)
+    _, idx_unsort = torch.sort(idx_sort, dim=0)
+
+    length_list = list(torch.tensor(length_list)[idx_sort])
+    idx_sort = Variable(idx_sort)
+    data_list = torch.tensor(data_list).index_select(0,idx_sort)
+    return [data_list, torch.LongTensor(length_list), idx_unsort, torch.LongTensor(label_list)]
+
 
