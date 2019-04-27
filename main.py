@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from model import *
 from dataloader import *
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+print(device)
 
 parser = argparse.ArgumentParser(description='Process some integers.')
 
@@ -59,24 +59,42 @@ train_data_indices = token2index_dataset(train_data_tokens,token2id)
 val_data_indices = token2index_dataset(val_data_tokens,token2id)
 test_data_indices = token2index_dataset(test_data_tokens,token2id)
 
-train_dataset = YelpDataset(train_data_indices, train_data_labels)
-train_loader = torch.utils.data.DataLoader(dataset=train_dataset, 
+if args.model!='RNN':
+    train_dataset = YelpDataset(train_data_indices, train_data_labels)
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                            batch_size=args.batch_size,
                                            collate_fn=yelp_collate_func,
                                            shuffle=True)
 
-val_dataset = YelpDataset(val_data_indices, val_data_labels)
-val_loader = torch.utils.data.DataLoader(dataset=val_dataset, 
+    val_dataset = YelpDataset(val_data_indices, val_data_labels)
+    val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
                                            batch_size=args.batch_size,
                                            collate_fn=yelp_collate_func,
                                            shuffle=True)
 
-test_dataset = YelpDataset(test_data_indices, test_data_labels)
-test_loader = torch.utils.data.DataLoader(dataset=test_dataset, 
+    test_dataset = YelpDataset(test_data_indices, test_data_labels)
+    test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                            batch_size=args.batch_size,
                                            collate_fn=yelp_collate_func,
                                            shuffle=False)
+else:
+    train_dataset = YelpDataset(train_data_indices, train_data_labels)
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                           batch_size=args.batch_size,
+                                           collate_fn=yelp_collate_func_rnn,
+                                           shuffle=True)
 
+    val_dataset = YelpDataset(val_data_indices, val_data_labels)
+    val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
+                                           batch_size=args.batch_size,
+                                           collate_fn=yelp_collate_func_rnn,
+                                           shuffle=True)
+
+    test_dataset = YelpDataset(test_data_indices, test_data_labels)
+    test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
+                                           batch_size=args.batch_size,
+                                           collate_fn=yelp_collate_func_rnn,
+                                           shuffle=False)
 
 
 
@@ -84,13 +102,14 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
 if args.model=='BOW':
     model = BagOfWords(len(id2token),args.hidden_size, args.emb_dim).to(device)
 elif args.model=='CNN':
-    model = CNN(len(id2token),args.hidden_size_linear,args.hidden_size_cnn, args.emb_dim).to(device)
-
+    model = CNN(len(id2token),args.hidden_size_linear, args.hidden_size_cnn, args.emb_dim).to(device)
+else:
+    model= RNN(args.emb_dim,args.hidden_size_linear, args.hidden_size_cnn,len(id2token)).to(device)
 learning_rate = 0.001
 num_epochs = 10 # number epoch to train
 
 # Criterion and Optimizer
-criterion = torch.nn.CrossEntropyLoss()  
+criterion = torch.nn.CrossEntropyLoss()
 
 if args.optimizer=='adam':
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -106,15 +125,24 @@ def test_model(loader, model):
     correct = 0
     total = 0
     model.eval()
-    for data, lengths, labels in loader:
-        data_batch, length_batch, label_batch = data.to(device), lengths.to(device), labels.to(device)
-        #print(data_batch,label_batch,length_batch)
-        outputs = F.softmax(model(data_batch, length_batch), dim=1)
-        predicted = outputs.max(1, keepdim=True)[1]
-        
-        total += labels.size(0)
-        correct += predicted.eq(labels.view_as(predicted)).sum().item()
-    return (100 * correct / total)
+    if args.model!='RNN':
+        for data, lengths, labels in loader:
+            data_batch, length_batch, label_batch = data.to(device), lengths.to(device), labels.to(device)
+            #print(data_batch,label_batch,length_batch)
+            outputs = F.softmax(model(data_batch, length_batch), dim=1)
+            predicted = outputs.max(1, keepdim=True)[1]
+            total += labels.size(0)
+            correct += predicted.eq(labels.view_as(predicted).to(device)).sum().item()
+        return (100 * correct / total)
+    else:
+        for data, lengths, unsort_idx, labels in loader:
+            data_batch, length_batch, unsort_batch, label_batch = data.to(device), lengths.to(device), unsort_idx.to(device), labels.to(device)
+            #print(data_batch,label_batch,length_batch)
+            outputs = F.softmax(model(data_batch, length_batch, unsort_batch), dim=1)
+            predicted = outputs.max(1, keepdim=True)[1]
+            total += labels.size(0)
+            correct += predicted.eq(labels.view_as(predicted).to(device)).sum().item()
+        return (100 * correct / total)
 
 val_acc_list=[]
 train_acc_list=[]
@@ -123,27 +151,52 @@ for epoch in range(num_epochs):
     #linear annealing of learning rate at every 4th epoch
     if epoch%3==2:
         optimizer=torch.optim.Adam(model.parameters(), lr=learning_rate*0.5)
-    for i, (data, lengths, labels) in enumerate(train_loader):
-        model.train()
-        data_batch, length_batch, label_batch = data.to(device), lengths.to(device), labels.to(device)
-        optimizer.zero_grad()
-        #for k in label_batch:
-        #    print(k.type())
-        outputs = model(data_batch, length_batch)
-        loss = criterion(outputs, label_batch)
-        loss.backward()
-        optimizer.step()
-        # validate every 100 iterations
-        if i > 0 and i%1==0:#and i % 100 == 0:
-            # validate
-            val_acc = test_model(val_loader, model)
-            train_acc= test_model(train_loader, model)
-            if val_acc>max_acc:
-                torch.save(model.state_dict(), 'model/'+args.model)
-            print('Epoch: [{}/{}], Step: [{}/{}], Validation Acc: {}, Training Acc: {}'.format( 
+    if args.model!='RNN':
+        for i, (data, lengths, labels) in enumerate(train_loader):
+            model.train()
+            data_batch, length_batch, label_batch = data.to(device), lengths.to(device), labels.to(device)
+            optimizer.zero_grad()
+            #for k in label_batch:
+            #    print(k.type())
+            outputs = model(data_batch, length_batch).to(device)
+            loss = criterion(outputs, label_batch)
+            loss.backward()
+            optimizer.step()
+            # validate every 100 iterations
+            if i > 0 and i % 100 == 0:
+                # validate
+                val_acc = test_model(val_loader, model)
+                train_acc= test_model(train_loader, model)
+                if val_acc>max_acc:
+                    torch.save(model.state_dict(), 'model/'+args.model)
+                print('Epoch: [{}/{}], Step: [{}/{}], Validation Acc: {}, Training Acc: {}'.format(
                        epoch+1, num_epochs, i+1, len(train_loader), val_acc, train_acc))
-    val_acc_list.append(val_acc)
-    train_acc_list.append(train_acc)
+        val_acc_list.append(val_acc)
+        train_acc_list.append(train_acc)
+    else:
+        for i, (data, lengths, unsort_idx, labels) in enumerate(train_loader):
+            model.train()
+            data_batch, length_batch, unsort_batch, label_batch = data.to(device), lengths.to(device),unsort_idx.to(device), labels.to(device)
+            optimizer.zero_grad()
+            #for k in label_batch:
+            #    print(k.type())
+            #print(data_batch.type())
+            outputs = model(data_batch, length_batch, unsort_batch).to(device)
+            loss = criterion(outputs, label_batch)
+            loss.backward()
+            optimizer.step()
+            # validate every 100 iterations
+            if i > 0 and i % 100 == 0:
+                # validate
+                val_acc = test_model(val_loader, model)
+                train_acc= test_model(train_loader, model)
+                if val_acc>max_acc:
+                    torch.save(model.state_dict(), 'model/'+args.model)
+                print('Epoch: [{}/{}], Step: [{}/{}], Validation Acc: {}, Training Acc: {}'.format(
+                       epoch+1, num_epochs, i+1, len(train_loader), val_acc, train_acc))
+        val_acc_list.append(val_acc)
+        train_acc_list.append(train_acc)
+
     
 #import matplotlib.pyplot as plt
 #%matplotlib inline
