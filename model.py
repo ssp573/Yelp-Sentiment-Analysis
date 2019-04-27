@@ -38,6 +38,54 @@ class BagOfWords(nn.Module):
         out = F.relu(self.linear(out.float()))
         out=self.linear2(out)
         return out
+    
+class RNN(nn.Module):
+    def __init__(self, emb_size, hidden_size, hidden_size_rnn, vocab_size, pretrained_vecs=None, num_layers=1):
+        # RNN Accepts the following hyperparams:
+        # emb_size: Embedding Size
+        # hidden_size: Hidden Size of layer in RNN
+        # num_layers: number of layers in RNN
+        # num_classes: number of output classes
+        # vocab_size: vocabulary size
+        super(RNN, self).__init__()
+        self.num_layers, self.hidden_size, self.hidden_size_rnn = num_layers, hidden_size, hidden_size_rnn
+        self.embedding = nn.Embedding(vocab_size, emb_size, padding_idx=0).to(device)
+        self.rnn = nn.GRU(emb_size, hidden_size_rnn, num_layers, batch_first=True, bidirectional=True) #First dimension is the batch size
+        self.linear = nn.Linear(2*hidden_size_rnn, hidden_size)
+        self.linear2=nn.Linear(hidden_size,2)
+
+    def init_hidden(self, batch_size):
+        # Function initializes the activation of recurrent neural net at timestep 0
+        # Needs to be in format (num_layers, batch_size, hidden_size)
+        hidden = torch.randn(self.num_layers*2, batch_size, self.hidden_size_rnn)
+
+        return hidden
+
+    def forward(self, x, lengths,unsort):
+        # reset hidden state
+
+        batch_size, seq_len = x.size()
+        self.hidden = self.init_hidden(batch_size).to(device)
+        #print(x.type())
+        # get embedding of characters
+        embed = self.embedding(x)
+        # pack padded sequence
+        #pytorch wants sequences to be in decreasing order of lengths
+        embed = torch.nn.utils.rnn.pack_padded_sequence(embed, lengths.cpu().numpy(), batch_first=True)
+        # fprop though RNN
+        rnn_out, self.hidden = self.rnn(embed, self.hidden)
+        # undo packing
+        rnn_out, _ = torch.nn.utils.rnn.pad_packed_sequence(rnn_out, batch_first=True)
+        # sum hidden activations of RNN across time
+        rnn_out = torch.sum(rnn_out, dim=1)
+        #print(rnn_out.shape)
+        #print(self.hidden.shape)
+        hidden=self.hidden.transpose(0,1).contiguous().view(batch_size, -1)
+        #print(hidden.shape)
+        hidden=hidden.index_select(0,unsort)
+        hidden = F.relu(self.linear(hidden))
+        out=self.linear2(hidden)
+        return out
 
 class CNN(nn.Module):
     """
