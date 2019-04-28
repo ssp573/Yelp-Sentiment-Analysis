@@ -8,7 +8,7 @@ class BagOfWords(nn.Module):
     """
     BagOfWords classification model
     """
-    def __init__(self, vocab_size, hidden_size, emb_dim):
+    def __init__(self, vocab_size, hidden_size, emb_dim, use_pretrained = 'n', pretrained_vecs=None):
         """
         @param vocab_size: size of the vocabulary. 
         @param emb_dim: size of the word embedding
@@ -16,10 +16,13 @@ class BagOfWords(nn.Module):
         super(BagOfWords, self).__init__()
         # pay attention to padding_idx 
         #embed dimension should be atleast 100
+        if use_pretrained=='y':
+            pretrained_vecs_tensor=torch.from_numpy(pretrained_vecs).float().to(device)
+            self.embed = nn.Embedding.from_pretrained(pretrained_vecs_tensor).to(device)
         self.embed = nn.Embedding(vocab_size, emb_dim, padding_idx=0).to(device)
         self.linear = nn.Linear(emb_dim,hidden_size)
         self.linear2=nn.Linear(hidden_size,2)
-    
+
     def forward(self, data, length):
         """
         
@@ -33,14 +36,15 @@ class BagOfWords(nn.Module):
         out = self.embed(data)
         out = torch.sum(out, dim=1)
         out /= length.view(length.size()[0],1).expand_as(out).float()
-     
+
         # return logits
         out = F.relu(self.linear(out.float()))
         out=self.linear2(out)
         return out
+
     
 class RNN(nn.Module):
-    def __init__(self, emb_size, hidden_size, hidden_size_rnn, vocab_size, pretrained_vecs=None, num_layers=1):
+    def __init__(self, emb_size, hidden_size, hidden_size_rnn, vocab_size,use_pretrained='n', pretrained_vecs=None, num_layers=1):
         # RNN Accepts the following hyperparams:
         # emb_size: Embedding Size
         # hidden_size: Hidden Size of layer in RNN
@@ -48,6 +52,9 @@ class RNN(nn.Module):
         # num_classes: number of output classes
         # vocab_size: vocabulary size
         super(RNN, self).__init__()
+        if use_pretrained=='y':
+            pretrained_vecs_tensor=torch.from_numpy(pretrained_vecs).float().to(device)
+            self.embed = nn.Embedding.from_pretrained(pretrained_vecs_tensor).to(device)
         self.num_layers, self.hidden_size, self.hidden_size_rnn = num_layers, hidden_size, hidden_size_rnn
         self.embedding = nn.Embedding(vocab_size, emb_size, padding_idx=0).to(device)
         self.rnn = nn.GRU(emb_size, hidden_size_rnn, num_layers, batch_first=True, bidirectional=True) #First dimension is the batch size
@@ -89,9 +96,9 @@ class RNN(nn.Module):
 
 class CNN(nn.Module):
     """
-    BagOfWords classification model
+    CNN classification model
     """
-    def __init__(self, vocab_size, hidden_size,hidden_cnn, emb_dim):
+    def __init__(self, vocab_size, hidden_size,hidden_cnn, emb_dim,use_pretrained='n', pretrained_vecs=None):
         """
         @param vocab_size: size of the vocabulary. 
         @param emb_dim: size of the word embedding
@@ -99,12 +106,15 @@ class CNN(nn.Module):
         super(CNN, self).__init__()
         # pay attention to padding_idx 
         #embed dimension should be atleast 100
+        if use_pretrained=='y':
+            pretrained_vecs_tensor=torch.from_numpy(pretrained_vecs).float().to(device)
+            self.embed = nn.Embedding.from_pretrained(pretrained_vecs_tensor).to(device)
         self.embed = nn.Embedding(vocab_size, emb_dim, padding_idx=0).to(device)
         self.conv1 = nn.Conv1d(emb_dim,hidden_cnn,kernel_size=3,padding=1)
-        #self.conv2 = nn.Conv1d(hidden_cnn,hidden_cnn,kernel_size=3,padding=1)
+        self.conv2 = nn.Conv1d(hidden_cnn,hidden_cnn,kernel_size=3,padding=1)
         self.linear = nn.Linear(hidden_cnn,hidden_size)
         self.linear2=nn.Linear(hidden_size,2)
-    
+
     def forward(self, data, length):
         #data.type()
         #print(data.type())
@@ -112,8 +122,8 @@ class CNN(nn.Module):
         embed = self.embed(data)
         hidden = self.conv1(embed.transpose(1,2)).transpose(1,2)
         hidden = F.relu(hidden.contiguous().view(-1, hidden.size(-1))).view(batch_size, seq_len, hidden.size(-1))
-        #hidden = self.conv2(hidden.transpose(1,2)).transpose(1,2)
-        #hidden = F.relu(hidden.contiguous().view(-1, hidden.size(-1))).view(batch_size, seq_len, hidden.size(-1))
+        hidden = self.conv2(hidden.transpose(1,2)).transpose(1,2)
+        hidden = F.relu(hidden.contiguous().view(-1, hidden.size(-1))).view(batch_size, seq_len, hidden.size(-1))
         # return logits
         hidden=torch.max(hidden,dim=1)[0]
         hidden = F.relu(self.linear(hidden))
