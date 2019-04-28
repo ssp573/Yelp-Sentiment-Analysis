@@ -28,17 +28,28 @@ parser.add_argument('--model',metavar='N', type=str,
                     help='Model',default='BOW')
 parser.add_argument('--optimizer',metavar='N', type=str,
                     help='Optimizer',default='adam')
+parser.add_argument('--pretrained_vecs',metavar='N', type=str,
+                    help='Pretrained vectors (y/n)',default="y")
+parser.add_argument('--stemming',metavar='N', type=str,
+                    help='stemming (y/n)',default="n")
 args = parser.parse_args()
 
+if args.stemming=='y':
+    print("in")
+    train_tokenized=pd.read_pickle(args.data_dir+'/train_restaurants_tokenized.pkl')#[:2000]
+    val_tokenized=pd.read_pickle(args.data_dir+'/val_restaurants_tokenized.pkl')#[:2000]
+    test_tokenized= pd.read_pickle(args.data_dir+'/test_restaurants_tokenized.pkl')#[:2000]
+train_tokenized=pd.read_pickle(args.data_dir+'/train_restaurants_tokenized_no_stem.pkl')#[:2000]
+val_tokenized=pd.read_pickle(args.data_dir+'/val_restaurants_tokenized_no_stem.pkl')#[:2000]
+test_tokenized= pd.read_pickle(args.data_dir+'/test_restaurants_tokenized_no_stem.pkl')#[:2000]
 
-
-train_tokenized=pd.read_pickle(args.data_dir+'/train_restaurants_tokenized.pkl')#[:2000]
-val_tokenized=pd.read_pickle(args.data_dir+'/val_restaurants_tokenized.pkl')#[:2000]
-test_tokenized= pd.read_pickle(args.data_dir+'/test_restaurants_tokenized.pkl')#[:2000]
+print(train_tokenized.sentiment.unique())
 
 train_tokenized['sentiment']=np.where(train_tokenized['sentiment']=='pos',1,0)
 val_tokenized['sentiment']=np.where(val_tokenized['sentiment']=='pos',1,0)
 test_tokenized['sentiment']=np.where(test_tokenized['sentiment']=='pos',1,0)
+
+print(train_tokenized.sentiment.unique())
 
 train_tuples= [tuple(x) for x in train_tokenized[['text','sentiment']].values]
 train_data_tokens,train_data_labels=zip(*train_tuples)
@@ -49,15 +60,20 @@ val_data_tokens,val_data_labels=zip(*val_tuples)
 test_tuples= [tuple(x) for x in test_tokenized[['text','sentiment']].values]
 test_data_tokens,test_data_labels=zip(*test_tuples)
 
-tokens=list(train_tokenized['text'])
-all_tokens=[token for token_list in tokens for token in token_list]
-dist_tokens=list(set(all_tokens))
-
-token2id, id2token = build_vocab(dist_tokens,args.max_vocab_size)
+pretrained_vecs=None
+if args.pretrained_vecs=='y':
+    print("in1")
+    token2id, id2token, pretrained_vecs = build_vocab_pretrained()
+else:
+    tokens=list(train_tokenized['text'])
+    all_tokens=[token for token_list in tokens for token in token_list]
+    dist_tokens=list(set(all_tokens))
+    token2id, id2token = build_vocab(dist_tokens,args.max_vocab_size)
 
 train_data_indices = token2index_dataset(train_data_tokens,token2id)
 val_data_indices = token2index_dataset(val_data_tokens,token2id)
 test_data_indices = token2index_dataset(test_data_tokens,token2id)
+
 
 if args.model!='RNN':
     train_dataset = YelpDataset(train_data_indices, train_data_labels)
@@ -100,11 +116,11 @@ else:
 
 #print(len(id2token))
 if args.model=='BOW':
-    model = BagOfWords(len(id2token),args.hidden_size, args.emb_dim).to(device)
+    model = BagOfWords(len(id2token),args.hidden_size_linear, args.emb_dim, args.pretrained_vecs,pretrained_vecs).to(device)
 elif args.model=='CNN':
-    model = CNN(len(id2token),args.hidden_size_linear, args.hidden_size_cnn, args.emb_dim).to(device)
+    model = CNN(len(id2token),args.hidden_size_linear, args.hidden_size_cnn, args.emb_dim, args.pretrained_vecs, pretrained_vecs).to(device)
 else:
-    model= RNN(args.emb_dim,args.hidden_size_linear, args.hidden_size_cnn,len(id2token)).to(device)
+    model= RNN(args.emb_dim,args.hidden_size_linear, args.hidden_size_cnn,len(id2token),args.pretrained_vecs, pretrained_vecs).to(device)
 learning_rate = 0.001
 num_epochs = 10 # number epoch to train
 
@@ -162,8 +178,8 @@ for epoch in range(num_epochs):
             loss = criterion(outputs, label_batch)
             loss.backward()
             optimizer.step()
-            # validate every 100 iterations
-            if i > 0 and i % 100 == 0:
+            # validate every 1000 iterations
+            if i > 0 and i % 1000 == 0:
                 # validate
                 val_acc = test_model(val_loader, model)
                 train_acc= test_model(train_loader, model)
@@ -185,8 +201,8 @@ for epoch in range(num_epochs):
             loss = criterion(outputs, label_batch)
             loss.backward()
             optimizer.step()
-            # validate every 100 iterations
-            if i > 0 and i % 100 == 0:
+            # validate every 1000 iterations
+            if i > 0 and i % 1000 == 0:
                 # validate
                 val_acc = test_model(val_loader, model)
                 train_acc= test_model(train_loader, model)
@@ -212,4 +228,3 @@ for epoch in range(num_epochs):
 #plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
 #plt.show()
-
