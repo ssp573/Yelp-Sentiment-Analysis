@@ -129,6 +129,13 @@ criterion = torch.nn.CrossEntropyLoss()
 
 if args.optimizer=='adam':
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+else:
+    optimizer= torch.optim.SGD(model.parameters(), lr=learning_rate)
+
+
+if torch.cuda.device_count()>1:
+    model=nn.DataParallel(model)
+
 
 #optimizer= torch.optim.SGD(model.parameters(), lr=learning_rate)
 
