@@ -117,6 +117,7 @@ else:
 
 
 #print(len(id2token))
+print("Model used: {}".format(args.model))
 if args.model=='BOW':
     model = BagOfWords(len(id2token),args.hidden_size_linear, args.emb_dim, args.pretrained_vecs,pretrained_vecs).to(device)
 elif args.model=='CNN':
@@ -168,7 +169,7 @@ def test_model(loader, model):
             total += labels.size(0)
             correct += predicted.eq(labels.view_as(predicted).to(device)).sum().item()
         return (100 * correct / total)
-
+print("Starting training")
 val_acc_list=[]
 train_acc_list=[]
 max_acc=0
