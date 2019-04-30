@@ -194,7 +194,7 @@ for epoch in range(num_epochs):
                 val_acc = test_model(val_loader, model)
                 train_acc= test_model(train_loader, model)
                 if val_acc>max_acc:
-                    torch.save(model.state_dict(), 'model/'+args.model)
+                    torch.save(model.state_dict(), <Directory to save and unique name for each configuration>)
                 print('Epoch: [{}/{}], Step: [{}/{}], Validation Acc: {}, Training Acc: {}'.format(
                        epoch+1, num_epochs, i+1, len(train_loader), val_acc, train_acc))
         val_acc_list.append(val_acc)
@@ -237,4 +237,4 @@ for epoch in range(num_epochs):
 # Place a legend to the right of this smaller subplot.
 #plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
-#plt.show()
+#plt.savefig(<Directory to save and unique name for each configuration>)
