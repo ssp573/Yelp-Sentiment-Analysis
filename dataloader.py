@@ -22,9 +22,9 @@ def build_vocab(all_tokens,max_vocab_size=10000):
     token2id['<unk>'] = UNK_IDX
     return token2id, id2token
 
-def build_vocab_pretrained():
+def build_vocab_pretrained(pretrained_path):
     words_to_load=100000
-    with open('/scratch/ssp573/CloudML/wiki-news-300d-1M.vec') as f:
+    with open(pretrained_path) as f:
         loaded_embeddings_ft = np.zeros((words_to_load+1, 300))
         token2id = {}
         id2token = ['<pad>']
@@ -127,4 +127,3 @@ def yelp_collate_func_rnn(batch):
     idx_sort = Variable(idx_sort)
     data_list = torch.tensor(data_list).index_select(0,idx_sort)
     return [torch.from_numpy(np.array(data_list)).long(), torch.LongTensor(length_list), idx_unsort, torch.LongTensor(label_list)]
-                                                                                                                                                                                          130,9         Bot

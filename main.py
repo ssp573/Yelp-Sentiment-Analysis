@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from model import *
-from dataloader import *
+from dataloader import * 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
@@ -14,6 +14,8 @@ parser = argparse.ArgumentParser(description='Process some integers.')
 
 parser.add_argument('--data_dir', metavar='N', type=str,
                     help='Data directory',default='data')
+parser.add_argument('--pretrained_vector_dir', metavar='N', type=str,
+                    help='Pretrained vector directory',default='/scratch/ssp573/CloudML/wiki-news-300d-1M.vec')
 parser.add_argument('--hidden_size_cnn', metavar='N', type=int,
                     help='Hidden layer size for CNN',default=512)
 parser.add_argument('--hidden_size_linear',metavar='N',type=int,
@@ -63,7 +65,7 @@ test_data_tokens,test_data_labels=zip(*test_tuples)
 pretrained_vecs=None
 if args.pretrained_vecs=='y':
     print("in1")
-    token2id, id2token, pretrained_vecs = build_vocab_pretrained()
+    token2id, id2token, pretrained_vecs = build_vocab_pretrained(args.pretrained_vector_dir)
 else:
     tokens=list(train_tokenized['text'])
     all_tokens=[token for token_list in tokens for token in token_list]
