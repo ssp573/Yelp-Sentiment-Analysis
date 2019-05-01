@@ -34,6 +34,8 @@ parser.add_argument('--pretrained_vecs',metavar='N', type=str,
                     help='Pretrained vectors (y/n)',default="y")
 parser.add_argument('--stemming',metavar='N', type=str,
                     help='stemming (y/n)',default="n")
+parser.add_argument('--model_name',metavar='N', type=str,
+                    help='stemming (y/n)',default="model")
 args = parser.parse_args()
 
 if args.stemming=='y':
@@ -197,7 +199,7 @@ for epoch in range(num_epochs):
                 val_acc = test_model(val_loader, model)
                 train_acc= test_model(train_loader, model)
                 if val_acc>max_acc:
-                    # torch.save(model.state_dict(), <Directory to save and unique name for each configuration>)
+                    torch.save(model.state_dict(), 'model/'+args.model)
                 print('Epoch: [{}/{}], Step: [{}/{}], Validation Acc: {}, Training Acc: {}'.format(
                        epoch+1, num_epochs, i+1, len(train_loader), val_acc, train_acc))
                 val_acc_list.append(val_acc)
@@ -221,7 +223,7 @@ for epoch in range(num_epochs):
                 val_acc = test_model(val_loader, model)
                 train_acc= test_model(train_loader, model)
                 if val_acc>max_acc:
-                    torch.save(model.state_dict(), 'model/'+args.model)
+                    torch.save(model.state_dict(), 'model/'+args.model_name)
                 print('Epoch: [{}/{}], Step: [{}/{}], Validation Acc: {}, Training Acc: {}'.format(
                        epoch+1, num_epochs, i+1, len(train_loader), val_acc, train_acc))
                 val_acc_list.append(val_acc)
