@@ -135,9 +135,10 @@ if args.optimizer=='adam':
 else:
     optimizer= torch.optim.SGD(model.parameters(), lr=learning_rate)
 
-
+data_parallel = False
 if torch.cuda.device_count()>1:
     model=nn.DataParallel(model)
+    data_parallel= True
     print("Using data parallel")
 
 #optimizer= torch.optim.SGD(model.parameters(), lr=learning_rate)
@@ -196,7 +197,7 @@ for epoch in range(num_epochs):
                 val_acc = test_model(val_loader, model)
                 train_acc= test_model(train_loader, model)
                 if val_acc>max_acc:
-                    torch.save(model.state_dict(), <Directory to save and unique name for each configuration>)
+                    # torch.save(model.state_dict(), <Directory to save and unique name for each configuration>)
                 print('Epoch: [{}/{}], Step: [{}/{}], Validation Acc: {}, Training Acc: {}'.format(
                        epoch+1, num_epochs, i+1, len(train_loader), val_acc, train_acc))
                 val_acc_list.append(val_acc)
@@ -209,7 +210,7 @@ for epoch in range(num_epochs):
             #for k in label_batch:
             #    print(k.type())
             #print(data_batch.type())
-            outputs = model(data_batch, length_batch, unsort_batch).to(device)
+            outputs = model(data_batch, length_batch, unsort_batch, data_parallel).to(device)
             loss = criterion(outputs, label_batch)
             loss.backward()
             optimizer.step()

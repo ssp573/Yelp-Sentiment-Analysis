@@ -68,11 +68,14 @@ class RNN(nn.Module):
 
         return hidden
 
-    def forward(self, x, lengths,unsort):
+    def forward(self, x, lengths,unsort, data_parallel=False):
         # reset hidden state
 
         batch_size, seq_len = x.size()
-        self.hidden = self.init_hidden(batch_size).to(device)
+        if not data_parallel:
+            self.hidden = self.init_hidden(batch_size).to(device)
+        else:
+            self.hidden = self.module.init_hidden(batch_size).to(device)
         #print(x.type())
         # get embedding of characters
         embed = self.embedding(x)
