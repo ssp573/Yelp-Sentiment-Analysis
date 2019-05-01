@@ -1,13 +1,13 @@
 #!/bin/bash
 
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:p40:4
-#SBATCH --mem=250GB
-#SBATCH --time=1:00:00
+#SBATCH --gres=gpu:4
+#SBATCH --mem=150GB
+#SBATCH --time=5:00:00
 #SBATCH --job-name=sentiment_analysis
 #SBATCH --output=sentiment_analysis_%j.out
-#SBATCH --exclusive
-#SBATCH --reservation=chung
+##SBATCH --exclusive
+##SBATCH --reservation=chung
 #SBATCH --cpus-per-task=28
 
 module purge

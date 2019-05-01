@@ -25,7 +25,7 @@ parser.add_argument('--emb_dim', metavar='N', type=int,
 parser.add_argument('--max_vocab_size', metavar='N', type=int,
                     help='Maximum vocabulary size',default=10000)
 parser.add_argument('--batch_size', metavar='N', type=int,
-                    help='Batch size',default=16)
+                    help='Batch size',default=256)
 parser.add_argument('--model',metavar='N', type=str,
                     help='Model',default='BOW')
 parser.add_argument('--optimizer',metavar='N', type=str,
@@ -138,7 +138,7 @@ else:
 
 if torch.cuda.device_count()>1:
     model=nn.DataParallel(model)
-
+    print("Using data parallel")
 
 #optimizer= torch.optim.SGD(model.parameters(), lr=learning_rate)
 
@@ -168,6 +168,7 @@ def test_model(loader, model):
             predicted = outputs.max(1, keepdim=True)[1]
             total += labels.size(0)
             correct += predicted.eq(labels.view_as(predicted).to(device)).sum().item()
+        print("testing complete")
         return (100 * correct / total)
 print("Starting training")
 val_acc_list=[]
@@ -189,16 +190,17 @@ for epoch in range(num_epochs):
             loss.backward()
             optimizer.step()
             # validate every 1000 iterations
-            if i > 0 and i % 1000 == 0:
+            if i > 0 and i % 100 == 0:
                 # validate
+#                import pdb; pdb.set_trace()
                 val_acc = test_model(val_loader, model)
                 train_acc= test_model(train_loader, model)
                 if val_acc>max_acc:
                     torch.save(model.state_dict(), <Directory to save and unique name for each configuration>)
                 print('Epoch: [{}/{}], Step: [{}/{}], Validation Acc: {}, Training Acc: {}'.format(
                        epoch+1, num_epochs, i+1, len(train_loader), val_acc, train_acc))
-        val_acc_list.append(val_acc)
-        train_acc_list.append(train_acc)
+                val_acc_list.append(val_acc)
+                train_acc_list.append(train_acc)
     else:
         for i, (data, lengths, unsort_idx, labels) in enumerate(train_loader):
             model.train()
@@ -212,16 +214,17 @@ for epoch in range(num_epochs):
             loss.backward()
             optimizer.step()
             # validate every 1000 iterations
-            if i > 0 and i % 1000 == 0:
+            if i > 0 and i % 100 == 0:
                 # validate
+         #       import pdb; pdb.set_trace()
                 val_acc = test_model(val_loader, model)
                 train_acc= test_model(train_loader, model)
                 if val_acc>max_acc:
                     torch.save(model.state_dict(), 'model/'+args.model)
                 print('Epoch: [{}/{}], Step: [{}/{}], Validation Acc: {}, Training Acc: {}'.format(
                        epoch+1, num_epochs, i+1, len(train_loader), val_acc, train_acc))
-        val_acc_list.append(val_acc)
-        train_acc_list.append(train_acc)
+                val_acc_list.append(val_acc)
+                train_acc_list.append(train_acc)
 
     
 #import matplotlib.pyplot as plt
@@ -236,5 +239,4 @@ for epoch in range(num_epochs):
 #plt.xlabel("number of epochs")
 # Place a legend to the right of this smaller subplot.
 #plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-
 #plt.savefig(<Directory to save and unique name for each configuration>)
