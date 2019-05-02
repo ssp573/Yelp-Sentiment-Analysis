@@ -2,7 +2,7 @@
 #!/bin/bash
 
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:k80:4
+#SBATCH --gres=gpu:p40:4
 #SBATCH --mem=150GB
 #SBATCH --time=5:00:00
 #SBATCH --job-name=sentiment_analysis

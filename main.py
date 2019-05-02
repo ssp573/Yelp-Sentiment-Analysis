@@ -264,4 +264,4 @@ if model != 'RNN': # Just temp placeholder while I work out kinks
         writer = csv.DictWriter(file, fieldnames=fnames)  
         writer.writeheader()
         for i in range(len(time_point)):
-            writer.writerow({'time_point' : str(time_point[i]), 'training_acc': str(train_acc_list[i]), 'validation_acc': str(val_acc_list[i]), 'time_string': time_string})
+            writer.writerow({'time_point' : str(time_point[i]), 'training_acc': str(train_acc_list[i]), 'validation_acc': str(val_acc_list[i]), 'time_string': time_string[i]})
