@@ -75,7 +75,7 @@ class RNN(nn.Module):
         if not data_parallel:
             self.hidden = self.init_hidden(batch_size).to(device)
         else:
-            self.hidden = self.module.init_hidden(batch_size).to(device)
+            self.hidden = self.init_hidden(batch_size).to(device)
         #print(x.type())
         # get embedding of characters
         embed = self.embedding(x)
