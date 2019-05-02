@@ -20,6 +20,8 @@ parser.add_argument('--hidden_size_cnn', metavar='N', type=int,
                     help='Hidden layer size for CNN',default=512)
 parser.add_argument('--hidden_size_linear',metavar='N',type=int,
                     help='Hidden layer size for linear layer', default=1024)
+parser.add_argument('--kernel_size',metavar='N',type=int,
+                    help='Kernel size for convolution', default=3)
 parser.add_argument('--emb_dim', metavar='N', type=int,
                     help='Dimensions for word embedding',default=300)
 parser.add_argument('--max_vocab_size', metavar='N', type=int,
@@ -36,6 +38,8 @@ parser.add_argument('--stemming',metavar='N', type=str,
                     help='stemming (y/n)',default="n")
 parser.add_argument('--model_name',metavar='N', type=str,
                     help='stemming (y/n)',default="model")
+parser.add_argument('--lr',metavar='N', type=float,
+                    help='learning_rate',default=0.001)
 args = parser.parse_args()
 
 if args.stemming=='y':
@@ -123,10 +127,11 @@ print("Model used: {}".format(args.model))
 if args.model=='BOW':
     model = BagOfWords(len(id2token),args.hidden_size_linear, args.emb_dim, args.pretrained_vecs,pretrained_vecs).to(device)
 elif args.model=='CNN':
-    model = CNN(len(id2token),args.hidden_size_linear, args.hidden_size_cnn, args.emb_dim, args.pretrained_vecs, pretrained_vecs).to(device)
+    model = CNN(len(id2token),args.hidden_size_linear, args.hidden_size_cnn, args.kernel_size, args.emb_dim, args.pretrained_vecs, pretrained_vecs).to(device)
 else:
     model= RNN(args.emb_dim,args.hidden_size_linear, args.hidden_size_cnn,len(id2token),args.pretrained_vecs, pretrained_vecs).to(device)
-learning_rate = 0.001
+learning_rate = args.lr
+print("learning_rate: {}".format(learning_rate))
 num_epochs = 2 # number epoch to train
 
 # Criterion and Optimizer
@@ -176,6 +181,7 @@ def test_model(loader, model):
 print("Starting training")
 j = 0
 time_point = []
+time_string= []
 val_acc_list=[]
 train_acc_list=[]
 max_acc=0
@@ -207,6 +213,8 @@ for epoch in range(num_epochs):
                     torch.save(model.state_dict(), 'model/'+args.model)
                 print('Epoch: [{}/{}], Step: [{}/{}], Validation Acc: {}, Training Acc: {}'.format(
                        epoch+1, num_epochs, i+1, len(train_loader), val_acc, train_acc))
+                time_string.append('Epoch: [{}/{}], Step: [{}/{}], Validation Acc: {}, Training Acc: {}'.format(
+                       epoch+1, num_epochs, i+1, len(train_loader), val_acc, train_acc))
                 val_acc_list.append(val_acc)
                 train_acc_list.append(train_acc)
     else:
@@ -233,7 +241,7 @@ for epoch in range(num_epochs):
                        epoch+1, num_epochs, i+1, len(train_loader), val_acc, train_acc))
                 val_acc_list.append(val_acc)
                 train_acc_list.append(train_acc)
-
+import csv
 import matplotlib as mpl
 mpl.use('Agg')    
 import matplotlib.pyplot as plt
@@ -248,4 +256,12 @@ plt.ylabel("accuracy")
 plt.xlabel("number of checks")
 # Place a legend to the right of this smaller subplot.
 plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-plt.savefig("./plots/cnn_{}_{}_{}_{}.png".format(args.hidden_size_cnn, learning_rate, args.batch_size, args.optimizer))
+plt.savefig("./plots/cnn_{}_{}_{}_{}_with_kernel_size:{}.png".format(args.hidden_size_cnn, learning_rate, args.batch_size, args.optimizer, args.kernel_size))
+if model != 'RNN': # Just temp placeholder while I work out kinks
+    file = open("./plots/raw_data_cnn_{}_{}_{}_{}_with_kernel_size:{}.csv".format(args.hidden_size_cnn, learning_rate, args.batch_size, args.optimizer, args.kernel_size), 'w')
+    with file:
+        fnames = ['time_point', 'training_acc', 'validation_acc', 'time_string']
+        writer = csv.DictWriter(file, fieldnames=fnames)  
+        writer.writeheader()
+        for i in range(len(time_point)):
+            writer.writerow({'time_point' : str(time_point[i]), 'training_acc': str(train_acc_list[i]), 'validation_acc': str(val_acc_list[i]), 'time_string': time_string})

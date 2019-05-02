@@ -101,7 +101,7 @@ class CNN(nn.Module):
     """
     CNN classification model
     """
-    def __init__(self, vocab_size, hidden_size,hidden_cnn, emb_dim,use_pretrained='n', pretrained_vecs=None):
+    def __init__(self, vocab_size, hidden_size,hidden_cnn, kernel_size, emb_dim,use_pretrained='n', pretrained_vecs=None):
         """
         @param vocab_size: size of the vocabulary. 
         @param emb_dim: size of the word embedding
@@ -113,8 +113,8 @@ class CNN(nn.Module):
             pretrained_vecs_tensor=torch.from_numpy(pretrained_vecs).float().to(device)
             self.embed = nn.Embedding.from_pretrained(pretrained_vecs_tensor).to(device)
         self.embed = nn.Embedding(vocab_size, emb_dim, padding_idx=0).to(device)
-        self.conv1 = nn.Conv1d(emb_dim,hidden_cnn,kernel_size=3,padding=1)
-        self.conv2 = nn.Conv1d(hidden_cnn,hidden_cnn,kernel_size=3,padding=1)
+        self.conv1 = nn.Conv1d(emb_dim,hidden_cnn,kernel_size=kernel_size,padding=1)
+        self.conv2 = nn.Conv1d(hidden_cnn,hidden_cnn,kernel_size=kernel_size,padding=1)
         self.linear = nn.Linear(hidden_cnn,hidden_size)
         self.linear2=nn.Linear(hidden_size,2)
 
