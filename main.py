@@ -127,7 +127,7 @@ elif args.model=='CNN':
 else:
     model= RNN(args.emb_dim,args.hidden_size_linear, args.hidden_size_cnn,len(id2token),args.pretrained_vecs, pretrained_vecs).to(device)
 learning_rate = 0.001
-num_epochs = 10 # number epoch to train
+num_epochs = 2 # number epoch to train
 
 # Criterion and Optimizer
 criterion = torch.nn.CrossEntropyLoss()
@@ -174,6 +174,8 @@ def test_model(loader, model):
         print("testing complete")
         return (100 * correct / total)
 print("Starting training")
+j = 0
+time_point = []
 val_acc_list=[]
 train_acc_list=[]
 max_acc=0
@@ -196,6 +198,9 @@ for epoch in range(num_epochs):
             if i > 0 and i % 100 == 0:
                 # validate
 #                import pdb; pdb.set_trace()
+                
+                time_point.append(j)
+                j += 1
                 val_acc = test_model(val_loader, model)
                 train_acc= test_model(train_loader, model)
                 if val_acc>max_acc:
@@ -229,17 +234,18 @@ for epoch in range(num_epochs):
                 val_acc_list.append(val_acc)
                 train_acc_list.append(train_acc)
 
-    
-#import matplotlib.pyplot as plt
+import matplotlib as mpl
+mpl.use('Agg')    
+import matplotlib.pyplot as plt
 #%matplotlib inline
 
 #epochs=[i for i in range(1,num_epochs+1)]
 
-#plt.subplot(223)
-#plt.plot( epochs,train_acc_list, label="training accuracy")
-#plt.plot( epochs, val_acc_list, label="validation accuracy")
-#plt.ylabel("accuracy")
-#plt.xlabel("number of epochs")
+plt.subplot(223)
+plt.plot( time_point,train_acc_list, label="training accuracy")
+plt.plot( time_point, val_acc_list, label="validation accuracy")
+plt.ylabel("accuracy")
+plt.xlabel("number of checks")
 # Place a legend to the right of this smaller subplot.
-#plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-#plt.savefig(<Directory to save and unique name for each configuration>)
+plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+plt.savefig("./plots/cnn_{}_{}_{}_{}.png".format(args.hidden_size_cnn, learning_rate, args.batch_size, args.optimizer))
