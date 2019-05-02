@@ -256,9 +256,9 @@ plt.ylabel("accuracy")
 plt.xlabel("number of checks")
 # Place a legend to the right of this smaller subplot.
 plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-plt.savefig("./plots/cnn_{}_{}_{}_{}_with_kernel_size:{}.png".format(args.hidden_size_cnn, learning_rate, args.batch_size, args.optimizer, args.kernel_size))
+plt.savefig("./plots/{}_{}_{}_{}_{}_with_kernel_size:{}.png".format(args.model,args.hidden_size_cnn, learning_rate, args.batch_size, args.optimizer, args.kernel_size))
 if model != 'RNN': # Just temp placeholder while I work out kinks
-    file = open("./plots/raw_data_cnn_{}_{}_{}_{}_with_kernel_size:{}.csv".format(args.hidden_size_cnn, learning_rate, args.batch_size, args.optimizer, args.kernel_size), 'w')
+    file = open("./plots/raw_data_{}_{}_{}_{}_{}_with_kernel_size:{}.csv".format(args.model, args.hidden_size_cnn, learning_rate, args.batch_size, args.optimizer, args.kernel_size), 'w')
     with file:
         fnames = ['time_point', 'training_acc', 'validation_acc', 'time_string']
         writer = csv.DictWriter(file, fieldnames=fnames)  
