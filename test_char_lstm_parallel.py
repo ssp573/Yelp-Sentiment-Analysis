@@ -15,6 +15,8 @@ import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
+import matplotlib as mpl
+mpl.use('Agg')    
 import matplotlib.pyplot as plt
 
 ## Pre-processing the data
@@ -199,7 +201,7 @@ def loss_plot(losses, valid_losses):
     # losses and valid_losses should have same length
     assert len(losses) == len(valid_losses)
     epochs = np.arange(len(losses))
-    plt.plot(epochs, losses, 'r-', valid_losses, 'b-')
+    # plt.plot(epochs, losses, 'r-', valid_losses, 'b-')
 
 
 # train the model!
