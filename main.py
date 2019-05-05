@@ -142,12 +142,6 @@ if args.optimizer=='adam':
 else:
     optimizer= torch.optim.SGD(model.parameters(), lr=learning_rate)
 
-data_parallel = False
-if torch.cuda.device_count()>1:
-    model=nn.DataParallel(model)
-    data_parallel= True
-    print("Using data parallel")
-
 #optimizer= torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 # Function for testing the model
@@ -185,6 +179,13 @@ time_string= []
 val_acc_list=[]
 train_acc_list=[]
 max_acc=0
+
+data_parallel = False
+if torch.cuda.device_count()>1:
+    model=nn.DataParallel(model).to(device)
+    data_parallel= True
+    print("Using data parallel")
+
 for epoch in range(num_epochs):
     #linear annealing of learning rate at every 4th epoch
     if epoch%3==2:
@@ -225,7 +226,7 @@ for epoch in range(num_epochs):
             #for k in label_batch:
             #    print(k.type())
             #print(data_batch.type())
-            outputs = model(data_batch, length_batch, unsort_batch, data_parallel).to(device)
+            outputs = model(data_batch, length_batch, unsort_batch)
             loss = criterion(outputs, label_batch)
             loss.backward()
             optimizer.step()
