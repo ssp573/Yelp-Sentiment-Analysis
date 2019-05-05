@@ -109,25 +109,16 @@ def test_model(loader, model):
     correct = 0
     total = 0
     model.eval()
-    if args.model!='RNN':
-        for data, lengths, labels in loader:
-            data_batch, length_batch, label_batch = data.to(device), lengths.to(device), labels.to(device)
-            #print(data_batch,label_batch,length_batch)
-            outputs = F.softmax(model(data_batch, length_batch), dim=1)
-            predicted = outputs.max(1, keepdim=True)[1]
-            total += labels.size(0)
-            correct += predicted.eq(labels.view_as(predicted).to(device)).sum().item()
-        return (100 * correct / total)
-    else:
-        for data, lengths, unsort_idx, labels in loader:
-            data_batch, length_batch, unsort_batch, label_batch = data.to(device), lengths.to(device), unsort_idx.to(device), labels.to(device)
-            #print(data_batch,label_batch,length_batch)
-            outputs = F.softmax(model(data_batch, length_batch, unsort_batch), dim=1)
-            predicted = outputs.max(1, keepdim=True)[1]
-            total += labels.size(0)
-            correct += predicted.eq(labels.view_as(predicted).to(device)).sum().item()
-        print("testing complete")
-        return (100 * correct / total)
+
+    for data, lengths, unsort_idx, labels in loader:
+        data_batch, length_batch, unsort_batch, label_batch = data.to(device), lengths.to(device), unsort_idx.to(device), labels.to(device)
+        #print(data_batch,label_batch,length_batch)
+        outputs = F.softmax(model(data_batch, length_batch, unsort_batch), dim=1)
+        predicted = outputs.max(1, keepdim=True)[1]
+        total += labels.size(0)
+        correct += predicted.eq(labels.view_as(predicted).to(device)).sum().item()
+    print("testing complete")
+    return (100 * correct / total)
 
 print("Starting training")
 j = 0
@@ -151,8 +142,7 @@ for epoch in range(num_epochs):
     for i, (data, lengths, unsort_idx, labels) in enumerate(train_loader):
         data_batch, length_batch, unsort_batch, label_batch = data.to(device), lengths.to(device),unsort_idx.to(device), labels.to(device)
         optimizer.zero_grad()
-        hidden = model.module.init_hidden(args.batch_size)
-        outputs, hidden = model(data_batch, hidden, length_batch, unsort_batch)
+        outputs, hidden = model(data_batch, length_batch, unsort_batch)
         loss = criterion(outputs, label_batch)
         loss.backward()
         optimizer.step()
