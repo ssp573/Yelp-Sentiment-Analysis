@@ -91,6 +91,7 @@ class RNN(nn.Module):
         rnn_out = torch.sum(rnn_out, dim=1)
         #print(rnn_out.shape)
         #print(self.hidden.shape)
+        hidden = self.hidden
         hidden= hidden.transpose(0,1).contiguous().view(batch_size, -1)
         #print(hidden.shape)
         hidden=hidden.index_select(0,unsort)
