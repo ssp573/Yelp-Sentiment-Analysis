@@ -142,7 +142,10 @@ for epoch in range(num_epochs):
     for i, (data, lengths, unsort_idx, labels) in enumerate(train_loader):
         data_batch, length_batch, unsort_batch, label_batch = data.to(device), lengths.to(device),unsort_idx.to(device), labels.to(device)
         optimizer.zero_grad()
-        outputs, hidden = model(data_batch, length_batch, unsort_batch)
+        hidden = model.module.init_hidden((args.batch_size / torch.cuda.device_count()) * 2)
+        import pdb; pdb.set_trace()
+        hidden.view(2, -1, args.hidden_size_cnn)
+        outputs, hidden = model(data_batch, hidden, length_batch, unsort_batch)
         loss = criterion(outputs, label_batch)
         loss.backward()
         optimizer.step()
