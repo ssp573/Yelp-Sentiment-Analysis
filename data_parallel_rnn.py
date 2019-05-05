@@ -136,7 +136,7 @@ if torch.cuda.device_count()>1:
 
 for epoch in range(num_epochs):
     model.train()
-    hidden = model.module.init_hidden((args.batch_size * 2) / torch.cuda.device_count() )
+    hidden = model.module.init_hidden(64)
     #linear annealing of learning rate at every 4th epoch
     if epoch%3==2:
         optimizer=torch.optim.Adam(model.module.parameters(), lr=learning_rate*0.5)
