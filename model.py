@@ -68,13 +68,11 @@ class RNN(nn.Module):
 
         return hidden
 
-    def forward(self, x, lengths,unsort):
+    def forward(self, x, hidden, lengths,unsort):
         # reset hidden state
 
         batch_size, seq_len = x.size()
 
-        if not self.hidden:
-            self.hidden =  self.init_hidden(batch_size)
         #print(x.type())
         # get embedding of characters
         embed = self.embedding(x)
@@ -82,7 +80,7 @@ class RNN(nn.Module):
         #pytorch wants sequences to be in decreasing order of lengths
         embed = torch.nn.utils.rnn.pack_padded_sequence(embed, lengths.cpu().numpy(), batch_first=True)
         # fprop though RNN
-        rnn_out, hidden = self.rnn(embed, self.hidden)
+        rnn_out, hidden = self.rnn(embed, hidden)
         self.hidden = hidden
         # undo packing
         rnn_out, _ = torch.nn.utils.rnn.pad_packed_sequence(rnn_out, batch_first=True)
