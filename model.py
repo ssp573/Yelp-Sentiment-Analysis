@@ -64,7 +64,9 @@ class RNN(nn.Module):
     def init_hidden(self, batch_size):
         # Function initializes the activation of recurrent neural net at timestep 0
         # Needs to be in format (num_layers, batch_size, hidden_size)
-        hidden = torch.randn(self.num_layers*2, batch_size, self.hidden_size_rnn).to(device)
+        weight = next(self.parameters()).data
+        # hidden = torch.randn(self.num_layers*2, batch_size, self.hidden_size_rnn).to(device)
+        hidden = weight.new(self.num_layers*2, batch_size, self.hidden_size_rnn).zero_().to(device)
 
         return hidden
 
