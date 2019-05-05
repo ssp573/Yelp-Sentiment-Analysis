@@ -42,7 +42,6 @@ class BagOfWords(nn.Module):
         out=self.linear2(out)
         return out
 
-    
 class RNN(nn.Module):
     def __init__(self, emb_size, hidden_size, hidden_size_rnn, vocab_size,use_pretrained='n', pretrained_vecs=None, num_layers=1):
         # RNN Accepts the following hyperparams:
@@ -64,38 +63,34 @@ class RNN(nn.Module):
     def init_hidden(self, batch_size):
         # Function initializes the activation of recurrent neural net at timestep 0
         # Needs to be in format (num_layers, batch_size, hidden_size)
-        hidden = torch.randn(self.num_layers*2, batch_size, self.hidden_size_rnn)
+        hidden = torch.randn(self.num_layers*2, batch_size, self.hidden_size_rnn).to(device)
 
         return hidden
 
-    def forward(self, x, lengths,unsort):
+    def forward(self, x, hidden, lengths,unsort):
         # reset hidden state
 
         batch_size, seq_len = x.size()
-        if torch.cuda.device_count()>1:
-            self.hidden = self.module.init_hidden(batch_size).to(device)
-        else:
-            self.hidden = self.init_hidden(batch_size).to(device)
         #print(x.type())
         # get embedding of characters
         embed = self.embedding(x)
         # pack padded sequence
         #pytorch wants sequences to be in decreasing order of lengths
-        embed = torch.nn.utils.rnn.pack_padded_sequence(embed, lengths.to(device).numpy(), batch_first=True)
+        embed = torch.nn.utils.rnn.pack_padded_sequence(embed, lengths.cpu().numpy(), batch_first=True)
         # fprop though RNN
-        rnn_out, self.hidden = self.rnn(embed, self.hidden)
+        rnn_out, hidden = self.rnn(embed, hidden)
         # undo packing
         rnn_out, _ = torch.nn.utils.rnn.pad_packed_sequence(rnn_out, batch_first=True)
         # sum hidden activations of RNN across time
         rnn_out = torch.sum(rnn_out, dim=1)
         #print(rnn_out.shape)
         #print(self.hidden.shape)
-        hidden=self.hidden.transpose(0,1).contiguous().view(batch_size, -1)
+        hidden= hidden.transpose(0,1).contiguous().view(batch_size, -1)
         #print(hidden.shape)
         hidden=hidden.index_select(0,unsort)
         hidden = F.relu(self.linear(hidden))
         out=self.linear2(hidden)
-        return out
+        return out, hidden
 
 class RNNLSTM(nn.Module):
     
