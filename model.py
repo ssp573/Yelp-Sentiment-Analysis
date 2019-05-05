@@ -68,18 +68,17 @@ class RNN(nn.Module):
 
         return hidden
 
-    def forward(self, x, lengths,unsort, data_parallel=False):
+    def forward(self, x, lengths,unsort):
         # reset hidden state
 
         batch_size, seq_len = x.size()
-        if not data_parallel:
-            self.hidden = self.init_hidden(batch_size).to(device)
+        if torch.cuda.device_count()>1:
+            self.hidden = self.module.init_hidden(batch_size).to(device)
         else:
             self.hidden = self.init_hidden(batch_size).to(device)
         #print(x.type())
         # get embedding of characters
         embed = self.embedding(x)
-        import pdb; pdb.set_trace()
         # pack padded sequence
         #pytorch wants sequences to be in decreasing order of lengths
         embed = torch.nn.utils.rnn.pack_padded_sequence(embed, lengths.to(device).numpy(), batch_first=True)

@@ -182,14 +182,14 @@ max_acc=0
 
 data_parallel = False
 if torch.cuda.device_count()>1:
-    model=nn.DataParallel(model).to(device)
+    model = nn.DataParallel(model).to(device)
     data_parallel= True
     print("Using data parallel")
 
 for epoch in range(num_epochs):
     #linear annealing of learning rate at every 4th epoch
     if epoch%3==2:
-        optimizer=torch.optim.Adam(model.parameters(), lr=learning_rate*0.5)
+        optimizer=torch.optim.Adam(model.module.parameters(), lr=learning_rate*0.5)
     if args.model!='RNN':
         for i, (data, lengths, labels) in enumerate(train_loader):
             model.train()
