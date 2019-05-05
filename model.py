@@ -64,9 +64,9 @@ class RNN(nn.Module):
     def init_hidden(self, batch_size):
         # Function initializes the activation of recurrent neural net at timestep 0
         # Needs to be in format (num_layers, batch_size, hidden_size)
-        weight = next(self.parameters()).data
-        # hidden = torch.randn(self.num_layers*2, batch_size, self.hidden_size_rnn).to(device)
-        hidden = weight.new(self.num_layers*2, batch_size, self.hidden_size_rnn).zero_().to(device)
+        # weight = next(self.parameters()).data
+        hidden = torch.randn(self.num_layers*2, batch_size, self.hidden_size_rnn)
+        # hidden = weight.new(self.num_layers*2, batch_size, self.hidden_size_rnn).zero_().to(device)
 
         return hidden
 
@@ -77,14 +77,14 @@ class RNN(nn.Module):
 
         #print(x.type())
         # get embedding of characters
-        if not self.hidden:
-            self.hidden = init_func(64)
+        # if not self.hidden:
+        #     self.hidden = init_func(64)
         embed = self.embedding(x)
         # pack padded sequence
         #pytorch wants sequences to be in decreasing order of lengths
         embed = torch.nn.utils.rnn.pack_padded_sequence(embed, lengths.cpu().numpy(), batch_first=True)
         # fprop though RNN
-        rnn_out, self.hidden = self.rnn(embed, self.hidden)
+        rnn_out, self.hidden = self.rnn(embed)
         # undo packing
         rnn_out, _ = torch.nn.utils.rnn.pad_packed_sequence(rnn_out, batch_first=True)
         # sum hidden activations of RNN across time
