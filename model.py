@@ -73,6 +73,7 @@ class RNN(nn.Module):
         batch_size, seq_len = x.size()
         #print(x.type())
         # get embedding of characters
+        import pdb; pdb.set_trace()
         embed = self.embedding(x)
         # pack padded sequence
         #pytorch wants sequences to be in decreasing order of lengths
