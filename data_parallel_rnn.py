@@ -130,13 +130,14 @@ max_acc=0
 
 data_parallel = False
 if torch.cuda.device_count()>1:
-    model = nn.DataParallel(model)
+    model = nn.DataParallel(model, dim=1)
     data_parallel= True
     print("Using data parallel")
 model.to(device)
 # init_func = model.module.init_hidden(64)
 for epoch in range(num_epochs):
     model.train()
+    hidden = model.module.init_hidden(64)
     #linear annealing of learning rate at every 4th epoch
     if epoch%3==2:
         optimizer=torch.optim.Adam(model.parameters(), lr=learning_rate*0.5)
@@ -145,7 +146,7 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()
         # import pdb; pdb.set_trace()
         # hidden.view(2, -1, args.hidden_size_cnn)
-        outputs = model(data_batch, length_batch, unsort_batch)
+        outputs, hidden = model(data_batch, hidden, length_batch, unsort_batch)
         loss = criterion(outputs, label_batch)
         loss.backward()
         optimizer.step()

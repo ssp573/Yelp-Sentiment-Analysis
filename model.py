@@ -70,10 +70,10 @@ class RNN(nn.Module):
 
         return hidden
 
-    def forward(self, x, lengths,unsort, init_func):
+    def forward(self, x, hidden, lengths,unsort, init_func):
         # reset hidden state
 
-        batch_size, seq_len = x.size()
+        # batch_size, seq_len = x.size()
 
         #print(x.type())
         # get embedding of characters
@@ -84,14 +84,13 @@ class RNN(nn.Module):
         #pytorch wants sequences to be in decreasing order of lengths
         embed = torch.nn.utils.rnn.pack_padded_sequence(embed, lengths.cpu().numpy(), batch_first=True)
         # fprop though RNN
-        rnn_out, self.hidden = self.rnn(embed)
+        rnn_out, hidden = self.rnn(embed, hidden)
         # undo packing
         rnn_out, _ = torch.nn.utils.rnn.pad_packed_sequence(rnn_out, batch_first=True)
         # sum hidden activations of RNN across time
         rnn_out = torch.sum(rnn_out, dim=1)
         #print(rnn_out.shape)
         #print(self.hidden.shape)
-        hidden = self.hidden
         hidden= hidden.transpose(0,1).contiguous().view(batch_size, -1)
         #print(hidden.shape)
         hidden=hidden.index_select(0,unsort)
