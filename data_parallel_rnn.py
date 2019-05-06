@@ -130,7 +130,7 @@ max_acc=0
 
 data_parallel = False
 if torch.cuda.device_count()>1:
-    model = nn.DataParallel(model, dim=1)
+    model = nn.DataParallel(model)
     data_parallel= True
     print("Using data parallel")
 model.to(device)
