@@ -102,57 +102,6 @@ class RNN(nn.Module):
 
         return out, ret_hidden
 
-class RNNLSTM(nn.Module):
-    
-    def __init__(self, emb_size, hidden_size, hidden_size_rnn, vocab_size,use_pretrained='n', pretrained_vecs=None, num_layers=1):
-        # RNN Accepts the following hyperparams:
-        # emb_size: Embedding Size
-        # hidden_size: Hidden Size of layer in RNN
-        # num_layers: number of layers in RNN
-        # num_classes: number of output classes
-        # vocab_size: vocabulary size
-        super(RNNLSTM, self).__init__()
-        if use_pretrained=='y':
-            pretrained_vecs_tensor=torch.from_numpy(pretrained_vecs).float().to(device)
-            self.embed = nn.Embedding.from_pretrained(pretrained_vecs_tensor).to(device)
-        self.num_layers, self.hidden_size, self.hidden_size_rnn = num_layers, hidden_size, hidden_size_rnn
-        self.embedding = nn.Embedding(vocab_size, emb_size, padding_idx=0).to(device)
-        self.rnn = self.lstm = nn.LSTM(emb_size, hidden_size_rnn, num_layers, batch_first=True)
-        self.dropout = nn.Dropout(0.3)
-        # nn.GRU(emb_size, hidden_size_rnn, num_layers, batch_first=True, bidirectional=True) #First dimension is the batch size
-        self.linear = nn.Linear(hidden_size_rnn, hidden_size)
-        self.linear2=nn.Linear(hidden_size,2)
-
-    def init_hidden(self, batch_size):
-        # Function initializes the activation of recurrent neural net at timestep 0
-        # Needs to be in format (num_layers, batch_size, hidden_size)
-        weight = next(self.parameters()).data
-        hidden = (weight.new(batch_size, self.num_layers, self.hidden_size_rnn).zero_().cuda(), weight.new(batch_size, self.num_layers, self.hidden_size_rnn).zero_().cuda())
-
-        return hidden
-
-    def forward(self, x, lengths,unsort, hidden, data_parallel=False):
-        # reset hidden state
-
-        batch_size, seq_len = x.size()
-        # if not data_parallel:
-        #     self.hidden = self.init_hidden(batch_size).to(device)
-        # else:
-        #     self.hidden = self.init_hidden(batch_size).to(device)
-        #print(x.type())
-        # get embedding of characters
-        embed = self.embedding(x)
-        # pack padded sequence
-        #pytorch wants sequences to be in decreasing order of lengths
-        # fprop though RNN
-        hidden = tuple([h.permute(1, 0, 2).contiguous() for h in hidden])
-        rnn_out, hidden = self.rnn(embed, hidden)
-        out = self.dropout(rnn_out)
-        hidden = F.relu(self.linear(hidden))
-        out=self.linear2(hidden)
-        hidden = tuple([h.permute(1, 0, 2).contiguous() for h in hidden])
-        return out
-
 class CNN(nn.Module):
     """
     CNN classification model
