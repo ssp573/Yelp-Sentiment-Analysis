@@ -87,6 +87,7 @@ class RNN(nn.Module):
         self.rnn.flatten_parameters()
         rnn_out, ret_hidden = self.rnn(embed, hidden)
         # undo packing
+        self.rnn.flatten_parameters()
         rnn_out, _ = torch.nn.utils.rnn.pad_packed_sequence(rnn_out, batch_first=True)
         # sum hidden activations of RNN across time
         rnn_out = torch.sum(rnn_out, dim=1)
