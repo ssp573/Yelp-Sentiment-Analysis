@@ -73,7 +73,7 @@ class RNN(nn.Module):
     def forward(self, x, hidden, lengths,unsort):
         # reset hidden state
 
-        # batch_size, seq_len = x.size()
+        batch_size, seq_len = x.size()
         hidden = hidden.permute(1, 0, 2).contiguous()
         #print(x.type())
         # get embedding of characters
