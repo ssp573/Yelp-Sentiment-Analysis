@@ -146,6 +146,7 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()
         # import pdb; pdb.set_trace()
         # hidden.view(2, -1, args.hidden_size_cnn)
+        hidden = tuple([h.permute(1, 0, 2).contiguous() for h in hidden])
         outputs, hidden = model(data_batch, hidden, length_batch, unsort_batch)
         loss = criterion(outputs, label_batch)
         loss.backward()

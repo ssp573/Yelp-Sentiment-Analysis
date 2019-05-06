@@ -84,7 +84,7 @@ class RNN(nn.Module):
         #pytorch wants sequences to be in decreasing order of lengths
         embed = torch.nn.utils.rnn.pack_padded_sequence(embed, lengths.cpu().numpy(), batch_first=True)
         # fprop though RNN
-        rnn_out, hidden = self.rnn(embed, hidden)
+        rnn_out, ret_hidden = self.rnn(embed, hidden)
         # undo packing
         rnn_out, _ = torch.nn.utils.rnn.pad_packed_sequence(rnn_out, batch_first=True)
         # sum hidden activations of RNN across time
@@ -96,7 +96,7 @@ class RNN(nn.Module):
         hidden=hidden.index_select(0,unsort)
         hidden = F.relu(self.linear(hidden))
         out=self.linear2(hidden)
-        return out
+        return out, ret_hidden
 
 class RNNLSTM(nn.Module):
     
