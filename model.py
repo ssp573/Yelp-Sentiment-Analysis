@@ -74,8 +74,7 @@ class RNN(nn.Module):
         # reset hidden state
 
         # batch_size, seq_len = x.size()
-        for i in range(len(hidden)):
-            hidden[i] = hidden[i].permute(1, 0, 2).contiguous()
+        hidden = hidden.permute(1, 0, 2).contiguous()
         #print(x.type())
         # get embedding of characters
         # if not self.hidden:
@@ -97,9 +96,8 @@ class RNN(nn.Module):
         hidden=hidden.index_select(0,unsort)
         hidden = F.relu(self.linear(hidden))
         out=self.linear2(hidden)
-        ret_hidden = list(ret_hidden)
-        for i in range(len(ret_hidden)):
-            ret_hidden[i] = ret_hidden[i].permute(1, 0, 2).contiguous()
+        ret_hidden = ret_hidden.permute(1, 0, 2).contiguous()
+
         return out, ret_hidden
 
 class RNNLSTM(nn.Module):
