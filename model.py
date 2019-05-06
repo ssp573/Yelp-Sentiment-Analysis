@@ -65,7 +65,7 @@ class RNN(nn.Module):
         # Function initializes the activation of recurrent neural net at timestep 0
         # Needs to be in format (num_layers, batch_size, hidden_size)
         # weight = next(self.parameters()).data
-        hidden = torch.randn(self.num_layers*2, batch_size, self.hidden_size_rnn)
+        hidden = torch.randn(batch_size, self.num_layers*2, self.hidden_size_rnn).to(device)
         # hidden = weight.new(self.num_layers*2, batch_size, self.hidden_size_rnn).zero_().to(device)
 
         return hidden
@@ -74,7 +74,8 @@ class RNN(nn.Module):
         # reset hidden state
 
         # batch_size, seq_len = x.size()
-
+        for i in range(len(hidden)):
+            hidden[i] = hidden[i].permute(1, 0, 2).contiguous()
         #print(x.type())
         # get embedding of characters
         # if not self.hidden:
@@ -96,6 +97,9 @@ class RNN(nn.Module):
         hidden=hidden.index_select(0,unsort)
         hidden = F.relu(self.linear(hidden))
         out=self.linear2(hidden)
+        ret_hidden = list(ret_hidden)
+        for i in range(len(ret_hidden)):
+            ret_hidden[i] = ret_hidden[i].permute(1, 0, 2).contiguous()
         return out, ret_hidden
 
 class RNNLSTM(nn.Module):
