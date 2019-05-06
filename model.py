@@ -70,7 +70,7 @@ class RNN(nn.Module):
 
         return hidden
 
-    def forward(self, x, hidden, lengths,unsort, init_func):
+    def forward(self, x, hidden, lengths,unsort):
         # reset hidden state
 
         # batch_size, seq_len = x.size()
