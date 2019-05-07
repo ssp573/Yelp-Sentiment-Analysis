@@ -31,15 +31,16 @@ business=pd.read_json('business.json', lines=True)
 #bar = df.categories.apply(lambda x: pd.value_counts(x.split(" "))).sum(axis = 0)
 #bar.nlargest(10)
 
-# categories = ["Services",
-# "Home", 
-# "Shopping",
+# categories = [
+# "Home", #
+# "Shopping", #
 # "Beauty",  
 # "Services", 
 # "Health",   
 # "Spas",    
-# "Hair",   
-# "Local"]    
+# "Hair",   #
+# "Local"#
+# ]    
 category = args.category
 print(str(category))
 business_filtered=business[~business['categories'].str.contains('Restaurant', na=False) & business['categories'].str.contains(category, na=False) & business['categories'].notnull()]
