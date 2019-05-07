@@ -224,7 +224,7 @@ for epoch in range(num_epochs):
                 print('Epoch: [{}/{}], Step: [{}/{}], Training Acc: {}'.format(
                        epoch+1, num_epochs, i+1, len(train_transfer_loader),train_acc))
                 # time_string.append('Epoch: [{}/{}], Step: [{}/{}], Validation Acc: {}, Training Acc: {}'.format(
-                       epoch+1, num_epochs, i+1, len(train_transfer_loader), val_acc, train_acc))
+                    #    epoch+1, num_epochs, i+1, len(train_transfer_loader), val_acc, train_acc))
                 # train_acc_list.append(train_acc)
     else:
         pass
