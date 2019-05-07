@@ -40,6 +40,8 @@ parser.add_argument('--model_name',metavar='N', type=str,
                     help='stemming (y/n)',default="model")
 parser.add_argument('--lr',metavar='N', type=float,
                     help='learning_rate',default=0.001)
+parser.add_argument('--domain',metavar='N', type=str,
+                    help='transfer learning domain')
 args = parser.parse_args()
 
 if args.stemming=='y':
@@ -51,8 +53,8 @@ train_tokenized=pd.read_pickle(args.data_dir+'/train_restaurants_tokenized_no_st
 val_tokenized=pd.read_pickle(args.data_dir+'/val_restaurants_tokenized_no_stem.pkl')#[:2000]
 test_tokenized= pd.read_pickle(args.data_dir+'/test_restaurants_tokenized_no_stem.pkl')#[:2000]
 
-train_tokenized_transfer=pd.read_pickle(args.data_dir+'/train_restaurants_tokenized_no_stem.pkl')#[:2000]
-
+train_tokenized_transfer=pd.read_pickle(args.data_dir+"/train_{}_tokenized_no_stem.pkl".format(args.domain))#[:2000]
+print("Domain: {}".format(args.domain))
 print(train_tokenized.sentiment.unique())
 
 train_tokenized['sentiment']=np.where(train_tokenized['sentiment']=='pos',1,0)
