@@ -31,7 +31,7 @@ args = parser.parse_args()
 # sample.to_pickle("data/comparison_test_set.pkl")
 # print("Training data saved at data/comparison_test_set.pkl")
 
-test_tokenized= pd.read_pickle(args.data_dir+'/comparison_test_set.pkl')[:1000]
+test_tokenized= pd.read_pickle(args.data_dir+'/comparison_test_set.pkl')
 
 batch = []
 labels = []
@@ -71,7 +71,7 @@ for text, label in test_tokenized.values.tolist():
 
 print("Amazon Comprehend Predicted {} out of {} or {} correctly".format(num_correct, total_values, str(num_correct / total_values) + '%'))
 
-file = open("./plots/AmazonComprehendTestData.csv", 'w')
+file = open("./plots/AmazonComprehendTestDataFullSet.csv", 'w')
 with file:
     fnames = ['Index', 'Label', 'Prediction', 'Positive%', 'Negative%', 'Neutral%', 'Mixed%']
     writer = csv.DictWriter(file, fieldnames=fnames)  
