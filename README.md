@@ -36,6 +36,7 @@ python ibm_testing.py
 python google_testing.py
 - needs credentials set in the environment
 
-python amazon_comprehend_testing.py \\
+python amazon_comprehend_testing.py
+
 python clean_amazon_results.py (needed to convert amazon results to just postive and negative scores)
 - needs credentials set in the environment
