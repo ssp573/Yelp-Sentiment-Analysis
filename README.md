@@ -11,8 +11,8 @@ Following commands were run on Prince cluster so local or other configurations m
 * module purge
 * module load python3/intel/3.6.3 cuda/9.0.176 nccl/cuda9.0/2.4.2
 * source <path to virtual env>/pytorch_env/py3.6.3/bin/activate
-* cd <path to this repo>
-* python main.py --data_dir <path to data> --pretrained_vector_dir <path to vectors> --model <model name>
+* cd \<path to this repo>
+* python main.py --data_dir \<path to data> --pretrained_vector_dir <path to vectors> --model <model name>
   
 Example:
 module purge
@@ -22,7 +22,7 @@ source /home/gs3011/pytorch_env/py3.6.3/bin/activate
 
 cd /scratch/gs3011/Yelp-Sentiment-Analysis
 
-python main.py --data_dir ./data --pretrained_vector_dir /scratch/gs3011/CloudML/wiki-news-300d-1M.vec --model CNN
+python main.py --data_dir \./data --pretrained_vector_dir /scratch/gs3011/CloudML/wiki-news-300d-1M.vec --model CNN
 
 
 ### To Run The Third Party Models
